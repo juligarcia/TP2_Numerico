@@ -75,11 +75,11 @@ def  Y_n(h, condicionesActuales, counter):
 
 	condicionesActuales[counter]['Yn'] = (condicionesActuales[counter].get('Yn') + h * condicionesActuales[counter].get('Vyn'))
 
-def Vy_n(h, condicionesActuales, counter, G = 6.674 * (10 ** -11), M1 = 5972 * (10 ** 21), M2 = 0, w = 0, y1 = 0, x1 = -4.670 * (10 ** 6), y2 = 0, x2 = 379.7 * (10 ** 6)):
+def Vy_n(h, condicionesActuales, counter, M2, w, G = 6.674 * (10 ** -11), M1 = 5972 * (10 ** 21), y1 = 0, x1 = -4.670 * (10 ** 6), y2 = 0, x2 = 379.7 * (10 ** 6)):
 
 	"""Calcula una iteracion de la ecuacion Vx n+1"""
 
-	a1 = math.atan((y1 - condicionesActuales[counter].get('Yn')) / (x1 - condicionesActuales[counter].get('Xn')))
+	a1 = math.atan2((y1 - condicionesActuales[counter].get('Yn')), (x1 - condicionesActuales[counter].get('Xn')))
 
 	d1Squared = (x1 - condicionesActuales[counter].get('Xn')) ** 2 + (y1 - condicionesActuales[counter].get('Yn')) ** 2
 
@@ -91,7 +91,7 @@ def Vy_n(h, condicionesActuales, counter, G = 6.674 * (10 ** -11), M1 = 5972 * (
 
 	else:
 
-		a2 = math.atan((y2 - condicionesActuales[counter].get('Yn')) / (x2 - condicionesActuales[counter].get('Xn')))
+		a2 = math.atan2((y2 - condicionesActuales[counter].get('Yn')), (x2 - condicionesActuales[counter].get('Xn')))
 
 		d2Squared = (x2 - condicionesActuales[counter].get('Xn')) ** 2 + (y2 - condicionesActuales[counter].get('Yn')) ** 2
 
@@ -103,19 +103,19 @@ def Vy_n(h, condicionesActuales, counter, G = 6.674 * (10 ** -11), M1 = 5972 * (
 
 	else:
 
-		ac = math.atan(condicionesActuales[counter].get('Yn') / condicionesActuales[counter].get('Xn'))
+		ac = math.atan2(condicionesActuales[counter].get('Yn'), condicionesActuales[counter].get('Xn'))
 
 		dg = math.sqrt(condicionesActuales[counter].get('Xn') ** 2 + condicionesActuales[counter].get('Yn') ** 2)
 
 		fuerzaCentripeta = (w ** 2) * dg * math.sin(ac)
 
-	condicionesActuales[counter]['Vyn'] = (fuerzaTerrea + fuerzaLunar + fuerzaCentripeta)
+	condicionesActuales[counter]['Vyn'] = (condicionesActuales[counter].get('Vyn') + h * (fuerzaTerrea + fuerzaLunar + fuerzaCentripeta))
 
-def Vx_n(h, condicionesActuales, counter, G = 6.674 * (10 ** -11), M1 = 5972 * (10 ** 21), M2 = 0, w = 0, y1 = 0, x1 = -4.670 * (10 ** 6), y2 = 0, x2 = 379.7 * (10 ** 6)):
+def Vx_n(h, condicionesActuales, counter, M2, w, G = 6.674 * (10 ** -11), M1 = 5972 * (10 ** 21), y1 = 0, x1 = -4.670 * (10 ** 6), y2 = 0, x2 = 379.7 * (10 ** 6)):
 
 	"""Calcula una iteracion de la ecuacion Vx n+1"""
 
-	a1 = math.atan((y1 - condicionesActuales[counter].get('Yn')) / (x1 - condicionesActuales[counter].get('Xn')))
+	a1 = math.atan2((y1 - condicionesActuales[counter].get('Yn')), (x1 - condicionesActuales[counter].get('Xn')))
 
 	d1Squared = (x1 - condicionesActuales[counter].get('Xn')) ** 2 + (y1 - condicionesActuales[counter].get('Yn')) ** 2
 
@@ -127,7 +127,7 @@ def Vx_n(h, condicionesActuales, counter, G = 6.674 * (10 ** -11), M1 = 5972 * (
 
 	else:
 
-		a2 = math.atan((y2 - condicionesActuales[counter].get('Yn')) / (x2 - condicionesActuales[counter].get('Xn')))
+		a2 = math.atan2((y2 - condicionesActuales[counter].get('Yn')), (x2 - condicionesActuales[counter].get('Xn')))
 
 		d2Squared = (x2 - condicionesActuales[counter].get('Xn')) ** 2 + (y2 - condicionesActuales[counter].get('Yn')) ** 2
 
@@ -139,15 +139,34 @@ def Vx_n(h, condicionesActuales, counter, G = 6.674 * (10 ** -11), M1 = 5972 * (
 
 	else:
 
-		ac = math.atan(condicionesActuales[counter].get('Yn') / condicionesActuales[counter].get('Xn'))
+		ac = math.atan2(condicionesActuales[counter].get('Yn'), condicionesActuales[counter].get('Xn'))
 
 		dg = math.sqrt(condicionesActuales[counter].get('Xn') ** 2 + condicionesActuales[counter].get('Yn') ** 2)
 
 		fuerzaCentripeta = (w ** 2) * dg * math.cos(ac)
 
-	condicionesActuales[counter]['Vxn'] = (fuerzaTerrea + fuerzaLunar + fuerzaCentripeta)
+	condicionesActuales[counter]['Vxn'] = (condicionesActuales[counter].get('Vxn') + h * (fuerzaTerrea + fuerzaLunar + fuerzaCentripeta))
 
-def eulerExplicito(condiciones_0):
+def generarTierra(r1 = 6.731 * (10 ** 6), x1 = -4.670 * (10 ** 6)):
+
+	x = []
+	y = []
+
+	counter = 0
+
+	for angulo in range(0, 360, 1):
+
+		x.append(r1 * (math.cos(angulo * math.pi / 180)))
+		x[counter] += x1
+		y.append(r1 * (math.sin(angulo * math.pi / 180)))
+
+		counter += 1
+
+	tierra = [x, y]
+
+	return tierra
+
+def eulerExplicito(condiciones_0, M2 = 73.48 * (10 ** 21), w = 4.236 * (10 ** -7)):
 
 	"""Metodo de resolucion de euler de forma explicita"""
 
@@ -172,15 +191,12 @@ def eulerExplicito(condiciones_0):
 
 	counter += 1
 
-	Vx_n(h, condicionesActuales, counter)
-	Vy_n(h, condicionesActuales, counter)
+	Vx_n(h, condicionesActuales, counter, M2, w)
+	Vy_n(h, condicionesActuales, counter, M2, w)
 	X_n(h, condicionesActuales, counter)
 	Y_n(h, condicionesActuales, counter)
 
-	print(condicionesActuales[0])
-	print(condicionesActuales[1])
-
-	while(condicionesActuales[counter].get('Yn')):
+	while((counter * h) < 2 * T):
 
 		aux = condicionesActuales[counter].copy()
 
@@ -188,21 +204,45 @@ def eulerExplicito(condiciones_0):
 
 		counter += 1
 
-		Vx_n(h, condicionesActuales, counter)
-		Vy_n(h, condicionesActuales, counter)
+		Vx_n(h, condicionesActuales, counter, M2, w)
+		Vy_n(h, condicionesActuales, counter, M2, w)
 		X_n(h, condicionesActuales, counter)
 		Y_n(h, condicionesActuales, counter)
 
 	x = [condicionesActuales[i].get('Xn') for i in range(0, len(condicionesActuales))]
 	y = [condicionesActuales[i].get('Yn') for i in range(0, len(condicionesActuales))]
 
-	plt.plot(x, y)
+	tierra = generarTierra()
+
+	plt.axis('equal')
+
+	plt.plot(tierra[0], tierra[1], label = 'Tierra', color = 'blue')
+	plt.plot(x, y, label = 'Trayecto', color = 'black')
+
+	plt.legend(bbox_to_anchor = (0., 1.02, 1., .102), loc = 3, ncol = 2, mode = "expand", borderaxespad = 0.)
+
+	plt.show()
 
 def main():
 
 	condiciones_0 = condicionesIniciales()
 
-	eulerExplicito(condiciones_0)
+	opcion = int(input('>Ingrese 1 para probar la orbita terrestre \n>Ingrese 2 para probar la orbita terrestre - lunar\n Opcion: '))
+
+	if opcion == 1:
+
+		M2 = 0
+		w = 0
+
+		eulerExplicito(condiciones_0, M2, w)
+
+	elif opcion == 2:
+
+		eulerExplicito(condiciones_0)
+
+	else:
+
+		print('Opcion incorrecta')
 
 main()
 
