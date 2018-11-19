@@ -30,19 +30,26 @@ def periodoAngular(v0, R):
 
 	"""Calcula el periodo ANngular en base al modulo de la velocidad"""
 
-	return (2 * math.pi / vo)
+	return (2 * math.pi / v0)
+
+def calcularR(R1 = 6.731 * (10 ** 6), h0 = 0.784 * (10 ** 6)):
+
+	"""Calcula, en X, la posicion inicial de la nave"""
+
+	return (R1 + h0)
 
 def posicionInicialX(X1 = -4.67 * (10 ** 6), R1 = 6.731 * (10 ** 6), h0 = 0.784 * (10 ** 6)):
 
 	"""Calcula, en X, la posicion inicial de la nave"""
 
-	return (X1 - R1 -h0)
+	return (X1 - R1 - h0)
 
 def condicionesIniciales():
 
 	"""Calcula las condiciones iniciales y las almacena en una lista de 4 elementos"""
 
 	condiciones_0 = {}
+	R = calcularR()
 
 	#Se agregan las condiciones triviales
 
@@ -52,9 +59,93 @@ def condicionesIniciales():
 	#Se agregan las condiciones no triviales
 
 	condiciones_0['Xn'] = posicionInicialX()
-	condiciones_0['Vyn'] = velocidadInicial()
+	condiciones_0['Vyn'] = velocidadInicial(R)
 
 	return condiciones_0
+
+def X_n(h, condicionesActuales):
+
+	"""Calcula una iteracion de la ecuacion Xn+1"""
+
+	condicionesActuales['Xn'] = (condicionesActuales.get('Xn') + h * condicionesActuales.get('Vxn'))
+
+def  Y_n(h, condicionesActuales):
+
+	"""Calcula una iteracion de la ecuacion Yn+1"""
+
+	condicionesActuales['Yn'] = (condicionesActuales.get('Yn') + h * condicionesActuales.get('Vyn'))
+
+def Vy_n(h, G = 6.674 * (10 ** -11), M1 = 5972 * (10 ** 21), y1 = 0, x1 = -4.670 * (10 ** 6), condicionesActuales):
+
+	"""Calcula una iteracion de la ecuacion Vx n+1"""
+
+	a1 = math.atan((y1 - condicionesActuales.get('yn')) / (x1 - condicionesActuales.get('xn')))
+
+	d1Squared = (x1 - condicionesActuales.get('xn')) ** 2 + (y1 - condicionesActuales.get('yn')) ** 2
+
+	fuerzaTerrea = (G * M1 / d1Squared) * math.sin(a1)
+
+	if M2 == 0:
+
+		fuerzaLunar = 0
+
+	else:
+
+		a2 = math.atan((y2 - condicionesActuales.get('yn')) / (x2 - condicionesActuales.get('xn')))
+
+		d2Squared = (x2 - condicionesActuales.get('xn')) ** 2 + (y2 - condicionesActuales.get('yn')) ** 2
+
+		fuerzaLunar = (G * M2 / d2Squared) * math.sin(a2)
+
+	if w == 0:
+
+		fuerzaCentripeta = 0
+
+	else:
+
+		ac = math.atan(condicionesActuales.get('yn') / condicionesIniciales.get('xn'))
+
+		dg = sqrt(condicionesActuales.get('xn') ** 2 + condicionesActuales.get('yn') ** 2)
+
+		fuerzaCentripeta = (w ** 2) * dg * math.sin(ac)
+
+	condicionesActuales['Vyn'] = (fuerzaTerrea + fuerzaLunar + fuerzaCentripeta)
+
+def Vx_n(h, G = 6.674 * (10 ** -11), M1 = 5972 * (10 ** 21), M2 = 0, w = 0, y1 = 0, x1 = -4.670 * (10 ** 6), y2 = 0, x2 = 379.7 * (10 ** 6), condicionesActuales):
+
+	"""Calcula una iteracion de la ecuacion Vx n+1"""
+
+	a1 = math.atan((y1 - condicionesActuales.get('yn')) / (x1 - condicionesActuales.get('xn')))
+
+	d1Squared = (x1 - condicionesActuales.get('xn')) ** 2 + (y1 - condicionesActuales.get('yn')) ** 2
+
+	fuerzaTerrea = (G * M1 / d1Squared) * math.cos(a1)
+
+	if M2 == 0:
+
+		fuerzaLunar = 0
+
+	else:
+
+		a2 = math.atan((y2 - condicionesActuales.get('yn')) / (x2 - condicionesActuales.get('xn')))
+
+		d2Squared = (x2 - condicionesActuales.get('xn')) ** 2 + (y2 - condicionesActuales.get('yn')) ** 2
+
+		fuerzaLunar = (G * M2 / d2Squared) * math.cos(a2)
+
+	if w == 0:
+
+		fuerzaCentripeta = 0
+
+	else:
+
+		ac = math.atan(condicionesActuales.get('yn') / condicionesIniciales.get('xn'))
+
+		dg = sqrt(condicionesActuales.get('xn') ** 2 + condicionesActuales.get('yn') ** 2)
+
+		fuerzaCentripeta = (w ** 2) * dg * math.cos(ac)
+
+	condicionesActuales['Vxn'] = (fuerzaTerrea + fuerzaLunar + fuerzaCentripeta)
 
 def eulerExplicito(condiciones_0):
 
@@ -63,40 +154,28 @@ def eulerExplicito(condiciones_0):
 	#h = comprobarEstabilidad()
 	#Hay que ver como codear esa funcion, primero quiero entender como hacerlo en lapiz y papel :D
 
-	condicionesIniciales = condicionesIniciales()
-	condicionesActuales = {}
+	condicionesActuales = [condicionesIniciales()]
+	counter = 0
 
 	"""Se inicializan las condiciones actuales en las iniciales y se crea el diccionario que luego se implementara"""
 
-	for key, value in condicionesIniciales.items():
-		
-		condicionesActuales[key] = value
+	R = posicionInicialX()
 
-	#Falta implementar las funciones que ya estan, lo hago despues
+	v0 = velocidadInicial(R)
+	print('La velocidad inicial es:' + str(v0))
+
+	T = periodoAngular(v0, R)
+	print('El periodo es:' + str(T))
+
+	
 
 
-def X_n(Xn, h, Vxn):
 
-	"""Calcula una iteracion de la ecuacion Xn+1"""
 
-	return (Xn + h * Vxn)
 
-def  Y_n(Yn, h, Vyn):
 
-	"""Calcula una iteracion de la ecuacion Yn+1"""
 
-	return (Yn + h * Vyn)
 
-def Vx_n(h, G = 6.674 * (10 ** -11), M1 = 5972 * (10 ** 21), y1 = 0, x1 = -4.670 * (10 ** 6), condicionesActuales):
 
-	"""Calcula una iteracion de la ecuacion Vx n+1"""
-
-	return (condicionesActuales.get('Vxn') + h * ((G * M1 / (d1 ** 2)) * math.cos(math.atan((y1 - condicionesActuales.get('yn')) / (x1 - condicionesActuales.get('xn'))))))
-
-def Vy_n(h, G = 6.674 * (10 ** -11), M1 = 5972 * (10 ** 21), y1 = 0, x1 = -4.670 * (10 ** 6), condicionesActuales):
-
-	"""Calcula una iteracion de la ecuacion Vx n+1"""
-
-	return (condicionesActuales.get('Vyn') + h * ((G * M1 / (d1 ** 2)) * math.sin(math.atan((y1 - condicionesActuales.get('yn')) / (x1 - condicionesActuales.get('xn'))))))
 
 
