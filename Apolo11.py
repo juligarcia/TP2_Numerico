@@ -227,19 +227,16 @@ def main():
 
 	if opcion == 1:
 
-		M2 = 0
-		w = 0
-
 		R = calcularR()
 
 		v0 = velocidadInicial(R)
 		print('La velocidad inicial es: ' + str(v0))
 
-		eulerExplicito(condiciones_0, v0, R, M2, w)
+		eulerExplicito(condiciones_0, v0, R, M2 = 0, w = 0)
 
 	elif opcion == 2:
 
-		v0 =int(input('Ingrese una velocidad inicial para el problema, 0 para finalizar \n Opcion: '))
+		v0 = int(input('Ingrese una velocidad inicial para el problema, 0 para finalizar \n Opcion: '))
 
 		if v0 != 0: 
 
