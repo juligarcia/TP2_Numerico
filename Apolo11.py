@@ -166,7 +166,7 @@ def generarTierra(r1 = 6.731 * (10 ** 6), x1 = -4.670 * (10 ** 6)):
 
 	return tierra
 
-def eulerExplicito(condiciones_0, M2 = 73.48 * (10 ** 21), w = 4.236 * (10 ** -7)):
+def eulerExplicito(condiciones_0, v0, R, M2 = 73.48 * (10 ** 21), w = 4.236 * (10 ** -7)):
 
 	"""Metodo de resolucion de euler de forma explicita"""
 
@@ -175,15 +175,11 @@ def eulerExplicito(condiciones_0, M2 = 73.48 * (10 ** 21), w = 4.236 * (10 ** -7
 
 	#Se inicializan las condiciones actuales en las iniciales y se crea el diccionario que luego se implementara
 
-	R = calcularR()
-
-	v0 = velocidadInicial(R)
-	print('La velocidad inicial es: ' + str(v0))
-
 	T = periodoAngular(v0, R)
 	print('El periodo es: ' + str(T))
 
 	h = int(input('Ingrese un valor  de paso: '))
+	print('\n')
 
 	aux = condicionesActuales[counter].copy()
 
@@ -196,7 +192,7 @@ def eulerExplicito(condiciones_0, M2 = 73.48 * (10 ** 21), w = 4.236 * (10 ** -7
 	X_n(h, condicionesActuales, counter)
 	Y_n(h, condicionesActuales, counter)
 
-	while((counter * h) < 2 * T):
+	while((counter * h) < 10 * T):
 
 		aux = condicionesActuales[counter].copy()
 
@@ -234,11 +230,28 @@ def main():
 		M2 = 0
 		w = 0
 
-		eulerExplicito(condiciones_0, M2, w)
+		R = calcularR()
+
+		v0 = velocidadInicial(R)
+		print('La velocidad inicial es: ' + str(v0))
+
+		eulerExplicito(condiciones_0, v0, R, M2, w)
 
 	elif opcion == 2:
 
-		eulerExplicito(condiciones_0)
+		v0 =int(input('Ingrese una velocidad inicial para el problema, 0 para finalizar \n Opcion: '))
+
+		if v0 != 0: 
+
+			while v0 != 0:
+
+				R = calcularR()
+
+				eulerExplicito(condiciones_0, v0, R)
+
+				v0 = int(input('Ingrese una velocidad inicial para el problema, 0 para finalizar \n Opcion: '))
+	
+		print('Programa Finalizado')
 
 	else:
 
