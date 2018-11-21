@@ -44,7 +44,7 @@ def posicionInicialX(X1 = -4.67 * (10 ** 6), R1 = 6.731 * (10 ** 6), h0 = 0.784 
 
 	return (X1 - R1 - h0)
 
-def condicionesIniciales():
+def condicionesIniciales(V_dada = 0):
 
 	"""Calcula las condiciones iniciales y las almacena en una lista de 4 elementos"""
 
@@ -59,7 +59,12 @@ def condicionesIniciales():
 	#Se agregan las condiciones no triviales
 
 	condiciones_0['Xn'] = posicionInicialX()
-	condiciones_0['Vyn'] = velocidadInicial(R)
+
+	if V_dada == 0:
+		condiciones_0['Vyn'] = velocidadInicial(R)
+
+	else:
+		condiciones_0['Vyn'] = V_dada
 
 	return condiciones_0
 
@@ -185,7 +190,7 @@ def generarLuna(r2 = 1.738 * (10 ** 6), x2 = 379.7 * (10 ** 6)):
 
 	return luna
 
-def eulerExplicito(condiciones_0, v0, R, M2 = 73.48 * (10 ** 21), w = 4.236 * (10 ** -7)):
+def eulerExplicitoTerrestre(condiciones_0, M2 = 0, w = 0):
 
 	"""Metodo de resolucion de euler de forma explicita"""
 
@@ -193,6 +198,11 @@ def eulerExplicito(condiciones_0, v0, R, M2 = 73.48 * (10 ** 21), w = 4.236 * (1
 	counter = 0
 
 	#Se inicializan las condiciones actuales en las iniciales y se crea el diccionario que luego se implementara
+
+	R = calcularR()
+
+	v0 = velocidadInicial(R)
+	print('La velocidad inicial es: ' + str(v0))
 
 	T = periodoAngular(v0, R)
 	print('El periodo es: ' + str(T))
@@ -210,10 +220,7 @@ def eulerExplicito(condiciones_0, v0, R, M2 = 73.48 * (10 ** 21), w = 4.236 * (1
 
 	counter += 1
 
-	Vx_n(h, condicionesActuales, counter, M2, w)
-	Vy_n(h, condicionesActuales, counter, M2, w)
-	X_n(h, condicionesActuales, counter)
-	Y_n(h, condicionesActuales, counter)
+	iterar(h, condicionesActuales, counter, M2, w)
 
 	while((counter * h) < 10 * T):
 
@@ -223,43 +230,103 @@ def eulerExplicito(condiciones_0, v0, R, M2 = 73.48 * (10 ** 21), w = 4.236 * (1
 
 		counter += 1
 
-		Vx_n(h, condicionesActuales, counter, M2, w)
-		Vy_n(h, condicionesActuales, counter, M2, w)
-		X_n(h, condicionesActuales, counter)
-		Y_n(h, condicionesActuales, counter)
+		iterar(h, condicionesActuales, counter, M2, w)
+
+	trayectoria = generarTrayectoria(condicionesActuales)
+
+	plotTrayectoria(trayectoria, estaLuna = False)	
+
+	return True
+
+def generarTrayectoria(condicionesActuales):
 
 	Tx = [condicionesActuales[i].get('Xn') for i in range(0, len(condicionesActuales))]
 	Ty = [condicionesActuales[i].get('Yn') for i in range(0, len(condicionesActuales))]
 
-	tierra = generarTierra()
-	luna = generarLuna()
+	return [Tx, Ty]
 
-	plt.plot(tierra[0], tierra[1], label = 'Tierra', color = 'blue')
-	plt.plot(luna[0], luna[1], label = 'Luna', color = 'green')
+def iterar(h, condicionesActuales, counter, M2, w):
+
+	"""Funcion para iterar"""
+
+	Vx_n(h, condicionesActuales, counter, M2, w)
+	Vy_n(h, condicionesActuales, counter, M2, w)
+	X_n(h, condicionesActuales, counter)
+	Y_n(h, condicionesActuales, counter)
+
+def plotTrayectoria(trayectoria, estaLuna = False):
+
+	"""Funcion para plotear todos los datos"""
 
 	plt.axis('equal')
-	plt.plot(Tx, Ty, label = 'Trayecto', color = 'black')
+
+	tierra = generarTierra()
+	plt.plot(tierra[0], tierra[1], label = 'Tierra', color = 'blue')
+
+	if estaLuna is True:
+		luna = generarLuna()
+		plt.plot(luna[0], luna[1], label ='Luna', color = 'grey')
+
+	plt.plot(trayectoria[0], trayectoria[1], label = 'Trayecto', color = 'black')
 
 	plt.legend(bbox_to_anchor = (0., 1.02, 1., .102), loc = 3, ncol = 2, mode = "expand", borderaxespad = 0.)
 
 	plt.show()
 
+def eulerExplicitoCompleto(condiciones_0, v0, M2 = 73.48 * (10 ** 21), w = 4.236 * (10 ** -7)):
+
+	condicionesActuales = [condiciones_0]
+	counter = 0
+
+	#Se inicializan las condiciones actuales en las iniciales y se crea el diccionario que luego se implementara
+
+	R = calcularR()
+
+	T = periodoAngular(v0, R)
+	print('El periodo es: ' + str(T))
+
+	h = float(input('Ingrese un valor  de paso: '))
+	print('\n')
+
+	if h <= 0:
+		print('Paso Incorrecto')
+		return False
+
+	aux = condicionesActuales[counter].copy()
+
+	condicionesActuales.append(aux)
+
+	counter += 1
+
+	iterar(h, condicionesActuales, counter, M2, w)
+
+	while((counter * h) < 400 * T):
+
+		aux = condicionesActuales[counter].copy()
+
+		condicionesActuales.append(aux)
+
+		counter += 1
+		
+		iterar(h, condicionesActuales, counter, M2, w)
+
+	trayectoria = generarTrayectoria(condicionesActuales)
+
+	plotTrayectoria(trayectoria, estaLuna = True)
+
 	return True
 
 def main():
 
-	condiciones_0 = condicionesIniciales()
+	printIntegrantes()
 
 	opcion = int(input('>Ingrese 1 para probar la orbita terrestre \n>Ingrese 2 para probar la orbita terrestre - lunar\n Opcion: '))
 
 	if opcion == 1:
 
-		R = calcularR()
+		condiciones_0 = condicionesIniciales()
 
-		v0 = velocidadInicial(R)
-		print('La velocidad inicial es: ' + str(v0))
-
-		if eulerExplicito(condiciones_0, v0, R, M2 = 0, w = 0):
+		if eulerExplicitoTerrestre(condiciones_0):
 			print('Se termino la simulacion con exito!')
 
 		else:
@@ -271,11 +338,11 @@ def main():
 
 		if v0 != 0: 
 
-			R = calcularR()
-
 			while v0 != 0:
 
-				if eulerExplicito(condiciones_0, v0, R):
+				condiciones_0 = condicionesIniciales(V_dada = v0)
+
+				if eulerExplicitoCompleto(condiciones_0, v0):
 					print('Se termino la simulacion con exito!')
 
 				else:
