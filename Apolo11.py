@@ -154,6 +154,8 @@ def Vx_n(h, condicionesActuales, counter, M2, w, G = 6.674 * (10 ** -11), M1 = 5
 
 def dSquared(condicion, estaTierra = False, estaLuna = False, y1 = 0, x1 = -4.670 * (10 ** 6), y2 = 0, x2 = 379.7 * (10 ** 6)):
 
+	"""Calcula la distancia al cuadrado entre la nave espacial y tanto la tierra como la luna, a eleccion"""
+
 	if estaTierra is True:
 		dSquared = (x1 - condicion.get('Xn')) ** 2 + (y1 - condicion.get('Yn')) ** 2
 
@@ -163,6 +165,8 @@ def dSquared(condicion, estaTierra = False, estaLuna = False, y1 = 0, x1 = -4.67
 	return dSquared
 
 def generarTierra(r1 = 6.731 * (10 ** 6), x1 = -4.670 * (10 ** 6)):
+
+	"""Genera los puntos pertenecientes a la grafia de la tierra"""
 
 	x = []
 	y = []
@@ -183,6 +187,8 @@ def generarTierra(r1 = 6.731 * (10 ** 6), x1 = -4.670 * (10 ** 6)):
 
 def generarLuna(r2 = 1.738 * (10 ** 6), x2 = 379.7 * (10 ** 6)):
 
+	"""Genera los puntos pertenecientes a la grafia de la luna"""
+
 	x = []
 	y = []
 
@@ -201,6 +207,8 @@ def generarLuna(r2 = 1.738 * (10 ** 6), x2 = 379.7 * (10 ** 6)):
 	return luna
 
 def generarTrayectoria(condicionesActuales):
+
+	"""Genera los vectores de posicion, con coordenadas x e y, de la trayctoria"""
 
 	Tx = [condicionesActuales[i].get('Xn') for i in range(0, len(condicionesActuales))]
 	Ty = [condicionesActuales[i].get('Yn') for i in range(0, len(condicionesActuales))]
@@ -237,6 +245,8 @@ def plotTrayectoria(trayectoria, estaLuna = False):
 
 def eulerExplicito(condicionesActuales, v0, M2 = 73.48 * (10 ** 21), w = 4.236 * (10 ** -7)):
 
+	"""Resolucion mediante Euler Explicito"""
+
 	condicionesActuales.append(condicionesIniciales(V_dada = v0))
 
 	counter = 0
@@ -249,6 +259,8 @@ def eulerExplicito(condicionesActuales, v0, M2 = 73.48 * (10 ** 21), w = 4.236 *
 
 	T = periodoAngular(condicionesActuales[counter].get('Vyn'), R)
 
+	#Se chequea si la luna esta presente mediante el valor de su masa M2
+
 	if M2 is 0:
 		print('>>El periodo es: ' + str(T))
 
@@ -258,6 +270,8 @@ def eulerExplicito(condicionesActuales, v0, M2 = 73.48 * (10 ** 21), w = 4.236 *
 	if h <= 0:
 		print('>>>Paso Incorrecto')
 		return False
+
+	tierra = generarTierra()
 
 	aux = condicionesActuales[counter].copy()
 
@@ -277,6 +291,12 @@ def eulerExplicito(condicionesActuales, v0, M2 = 73.48 * (10 ** 21), w = 4.236 *
 		
 		iterar(h, condicionesActuales, counter, M2, w)
 
+		if areWeDeadYet(condicionesActuales[counter]):
+
+			print('>>>>>>>>La nave se estrello!<<<<<<<<')
+
+			break
+
 	trayectoria = generarTrayectoria(condicionesActuales)
 
 	if M2 is 0:
@@ -288,6 +308,8 @@ def eulerExplicito(condicionesActuales, v0, M2 = 73.48 * (10 ** 21), w = 4.236 *
 	return True
 
 def energiaTotal(condicionesActuales, estaLuna = False):
+
+	"""Se calcula la energia total y se grafica"""
 
 	if estaLuna is True:
 		energiaPotencialTotal = [energiaPotencial(condicionesActuales[i]) for i in range(0, len(condicionesActuales))]
@@ -301,6 +323,8 @@ def energiaTotal(condicionesActuales, estaLuna = False):
 
 def plotEnergia(energiaCineticaTotal, energiaPotencialTotal, energiaMecanicaTotal):
 
+	"""Se encarga de graficar todas las energias juntas"""
+
 	plt.plot(energiaCineticaTotal, label = 'Energia Cinetica', color = 'red')
 	plt.plot(energiaPotencialTotal, label = 'Energia Potencial', color = 'green')
 	plt.plot(energiaMecanicaTotal, label = 'Energia Mecanica', color = 'blue')
@@ -311,13 +335,17 @@ def plotEnergia(energiaCineticaTotal, energiaPotencialTotal, energiaMecanicaTota
 
 def energiaCinetica(condicion):
 
+	"""Calculo de la energia cinetica"""
+
 	return 0.5 * (moduloVelocidad(condicion.get('Vxn'), condicion.get('Vyn')) ** 2)
 
 def energiaPotencial(condicion, G = 6.674 * (10 ** -11), M1 = 5972 * (10 ** 21), M2 = 73.48 * (10 ** 21)):
 
+	"""Calculo de la energia potencial"""
+
 	energiaPotencial = -G * M1 / (dSquared(condicion, estaTierra = True) ** 0.5)
 
-	if M2 is not 0:
+	if M2 != 0:
 
 		energiaPotencial += -G * M2 / (dSquared(condicion, estaLuna = True) ** 0.5)
 
@@ -325,19 +353,29 @@ def energiaPotencial(condicion, G = 6.674 * (10 ** -11), M1 = 5972 * (10 ** 21),
 
 def moduloVelocidad(Vxn, Vyn):
 
+	"""Calcula el modulo de la velocidad dado que tiene 2 componentes"""
+
 	return math.sqrt(Vxn ** 2 + Vyn ** 2)
 
-def areWeDeadYet(condicion)
+def areWeDeadYet(condicion, r1 = 6.731 * (10 ** 6), r2 = 1.738 * (10 ** 6)):
+
+	"""Verifica si la nave choco, para asi, frenar la simulacion"""
+
+	if (dSquared(condicion, estaLuna = True) ** 0.5 <= r2) | (dSquared(condicion, estaTierra = True) ** 0.5 <= r1):
+		return True
+
+	else:		
+		return False
 
 def main():
-
-	condicionesActuales = []
 
 	printIntegrantes()
 
 	opcion = int(input('>Ingrese 1 para probar la orbita terrestre \n>Ingrese 2 para probar la orbita terrestre - lunar\n\n>Opcion: '))
 
 	if opcion is 1:
+
+		condicionesActuales = []
 
 		#Se indica, con v0 = 0, que se debe calcular la velocidad inicial
 
@@ -360,9 +398,11 @@ def main():
 
 		v0 = float(input('>Ingrese una velocidad inicial para el problema, 0 para finalizar.\n\n>Opcion: '))
 
-		if v0 is not 0: 
+		if v0 != 0: 
 
-			while v0 is not 0:
+			while v0 != 0:
+
+				condicionesActuales = []
 
 				if eulerExplicito(condicionesActuales, v0):
 
