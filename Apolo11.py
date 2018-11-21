@@ -166,6 +166,25 @@ def generarTierra(r1 = 6.731 * (10 ** 6), x1 = -4.670 * (10 ** 6)):
 
 	return tierra
 
+def generarLuna(r2 = 1.738 * (10 ** 6), x2 = 379.7 * (10 ** 6)):
+
+	x = []
+	y = []
+
+	counter = 0
+
+	for angulo in range(0, 360, 1):
+
+		x.append(r2 * (math.cos(angulo * math.pi / 180)))
+		x[counter] += x2
+		y.append(r2 * (math.sin(angulo * math.pi / 180)))
+
+		counter += 1
+
+	luna = [x, y]
+
+	return luna
+
 def eulerExplicito(condiciones_0, v0, R, M2 = 73.48 * (10 ** 21), w = 4.236 * (10 ** -7)):
 
 	"""Metodo de resolucion de euler de forma explicita"""
@@ -178,8 +197,12 @@ def eulerExplicito(condiciones_0, v0, R, M2 = 73.48 * (10 ** 21), w = 4.236 * (1
 	T = periodoAngular(v0, R)
 	print('El periodo es: ' + str(T))
 
-	h = int(input('Ingrese un valor  de paso: '))
+	h = float(input('Ingrese un valor  de paso: '))
 	print('\n')
+
+	if h <= 0:
+		print('Paso Incorrecto')
+		return False
 
 	aux = condicionesActuales[counter].copy()
 
@@ -205,19 +228,23 @@ def eulerExplicito(condiciones_0, v0, R, M2 = 73.48 * (10 ** 21), w = 4.236 * (1
 		X_n(h, condicionesActuales, counter)
 		Y_n(h, condicionesActuales, counter)
 
-	x = [condicionesActuales[i].get('Xn') for i in range(0, len(condicionesActuales))]
-	y = [condicionesActuales[i].get('Yn') for i in range(0, len(condicionesActuales))]
+	Tx = [condicionesActuales[i].get('Xn') for i in range(0, len(condicionesActuales))]
+	Ty = [condicionesActuales[i].get('Yn') for i in range(0, len(condicionesActuales))]
 
 	tierra = generarTierra()
-
-	plt.axis('equal')
+	luna = generarLuna()
 
 	plt.plot(tierra[0], tierra[1], label = 'Tierra', color = 'blue')
-	plt.plot(x, y, label = 'Trayecto', color = 'black')
+	plt.plot(luna[0], luna[1], label = 'Luna', color = 'green')
+
+	plt.axis('equal')
+	plt.plot(Tx, Ty, label = 'Trayecto', color = 'black')
 
 	plt.legend(bbox_to_anchor = (0., 1.02, 1., .102), loc = 3, ncol = 2, mode = "expand", borderaxespad = 0.)
 
 	plt.show()
+
+	return True
 
 def main():
 
@@ -232,21 +259,29 @@ def main():
 		v0 = velocidadInicial(R)
 		print('La velocidad inicial es: ' + str(v0))
 
-		eulerExplicito(condiciones_0, v0, R, M2 = 0, w = 0)
+		if eulerExplicito(condiciones_0, v0, R, M2 = 0, w = 0):
+			print('Se termino la simulacion con exito!')
+
+		else:
+			print('Fracaso en la simulacion')
 
 	elif opcion == 2:
 
-		v0 = int(input('Ingrese una velocidad inicial para el problema, 0 para finalizar \n Opcion: '))
+		v0 = float(input('Ingrese una velocidad inicial para el problema, 0 para finalizar \n Opcion: '))
 
 		if v0 != 0: 
 
+			R = calcularR()
+
 			while v0 != 0:
 
-				R = calcularR()
+				if eulerExplicito(condiciones_0, v0, R):
+					print('Se termino la simulacion con exito!')
 
-				eulerExplicito(condiciones_0, v0, R)
+				else:
+					print('Fracaso en la simulacion')
 
-				v0 = int(input('Ingrese una velocidad inicial para el problema, 0 para finalizar \n Opcion: '))
+				v0 = float(input('Ingrese una velocidad inicial para el problema, 0 para finalizar \n Opcion: '))
 	
 		print('Programa Finalizado')
 
