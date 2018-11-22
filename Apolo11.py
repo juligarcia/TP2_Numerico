@@ -247,24 +247,18 @@ def eulerExplicito(condicionesActuales, v0, M2 = 73.48 * (10 ** 21), w = 4.236 *
 
 	"""Resolucion mediante Euler Explicito"""
 
+	#Se inicializan las condiciones actuales en las iniciales y se crea el diccionario que luego se implementara
+
 	condicionesActuales.append(condicionesIniciales(V_dada = v0))
 
 	counter = 0
-
-	#Se inicializan las condiciones actuales en las iniciales y se crea el diccionario que luego se implementara
-
+	rotation = False
+	isOnReach = True
 	R = calcularR()
-
-	print('>>La velocidad inicial es: ' + str(condicionesActuales[counter].get('Vyn')))
-
-	T = periodoAngular(condicionesActuales[counter].get('Vyn'), R)
 
 	#Se chequea si la luna esta presente mediante el valor de su masa M2
 
-	if M2 is 0:
-		print('>>El periodo es: ' + str(T))
-
-	h = float(input('>>Ingrese un valor  de paso: '))
+	h = float(input('>>Ingrese un valor de paso: '))
 	print('\n')
 
 	if h <= 0:
@@ -281,7 +275,10 @@ def eulerExplicito(condicionesActuales, v0, M2 = 73.48 * (10 ** 21), w = 4.236 *
 
 	iterar(h, condicionesActuales, counter, M2, w)
 
-	while((counter * h) < 400 * T):
+	while rotation != True & isOnReach :
+
+		#Se toma una 'vuelta' de referencia para frenar las iteraciones o el tiempo en que tarda en dar 
+		#600 vueltas a la tierra (Es un timepo limite por si se dispara el satelite)
 
 		aux = condicionesActuales[counter].copy()
 
@@ -292,10 +289,20 @@ def eulerExplicito(condicionesActuales, v0, M2 = 73.48 * (10 ** 21), w = 4.236 *
 		iterar(h, condicionesActuales, counter, M2, w)
 
 		if areWeDeadYet(condicionesActuales[counter]):
-
-			print('>>>>>>>>La nave se estrello!<<<<<<<<')
-
+			print('>>>>>>>>La nave se estrello!<<<<<<<<\n')
 			break
+
+		if fullRotationCheck(condicionesActuales[counter]):
+			print('>>>>>>>>Orbita completada!<<<<<<<<\n')
+			rotation = True
+
+		if onReach(condicionesActuales[counter]) is False:
+			print('>>>>>>>>Fuera de alcance<<<<<<<<')
+			print('>>>>>>>>Perdimos la nave<<<<<<<<')
+			print('>>>>>>>>Notifique a los familiares de los tripulantes<<<<<<<<\n')
+			isOnReach = False
+		
+	printBitacora(condicionesActuales[0], h, counter)
 
 	trayectoria = generarTrayectoria(condicionesActuales)
 
@@ -307,12 +314,29 @@ def eulerExplicito(condicionesActuales, v0, M2 = 73.48 * (10 ** 21), w = 4.236 *
 
 	return True
 
+def printBitacora(condiciones_0, h, counter):
+
+	print('\n')
+	print('>Velocidad de partida: %.2f m/s' % condiciones_0.get('Vyn'))
+	print('>Se tardo en completar la orbita: %.2f segundos o %.2f dias.' % (h * counter, h * counter / 3600))
+	print('\n')
+
+def onReach(condicion, x1 = -4.670 * (10 ** 6), x2 = 379.7 * (10 ** 6)):
+
+	distanciaEntreLunaYTierra = x2 - x1
+
+	if dSquared(condicion, estaTierra = True) ** 0.5 >= 1.5 * distanciaEntreLunaYTierra:
+		return False
+
+	return True
+
 def energiaTotal(condicionesActuales, estaLuna = False):
 
 	"""Se calcula la energia total y se grafica"""
 
 	if estaLuna is True:
 		energiaPotencialTotal = [energiaPotencial(condicionesActuales[i]) for i in range(0, len(condicionesActuales))]
+
 	else:
 		energiaPotencialTotal = [energiaPotencial(condicionesActuales[i], M2 = 0) for i in range(0, len(condicionesActuales))]
 
@@ -367,6 +391,45 @@ def areWeDeadYet(condicion, r1 = 6.731 * (10 ** 6), r2 = 1.738 * (10 ** 6)):
 	else:		
 		return False
 
+def fullRotationCheck(condicion, x1 = -4.670 * (10 ** 6)):
+
+	"""Verifica segun la rotacion de la nave si esta ha completado un ciclo 
+	   (considerando una "orbita" una vuelta completa volviendo al punto de salida"""
+
+	fase = math.atan2(condicion.get('Yn'), condicion.get('Xn') - x1)
+
+	if (fase > -math.pi) & (fase < -3.13):
+		return True 
+
+	else:
+		return False
+
+def rocket():
+
+	print('\n')
+	print('        /  \\')
+	print('       /    \\')
+	print('      /      \\')
+	print('     /        \\')
+	print('    /          \\')
+	print('    ------------')
+	print('    |    ()    |')
+	print('   /|          |\\')
+	print('  / |    ()    | \\')
+	print(' /  |          |  \\')
+	print(' ---|    ()    |---')
+	print('    ------------')
+	print('      |      |')
+	print('      \\/\\/\\/\\/')
+	print('    \\/\\/\\/\\/\\/\\/')
+	print('  \\/\\/\\/\\/\\/\\/\\/\\/')
+
+def rungeKuta2(condicionesActuales, v0, M2 = 73.48 * (10 ** 21), w = 4.236 * (10 ** -7)):
+
+	"""Resolucion mediante Runge Kuta de orden 2"""
+
+	#terminar
+
 def main():
 
 	printIntegrantes()
@@ -387,7 +450,8 @@ def main():
 
 			energiaTotal(condicionesActuales)
 
-			print('>Se termino la simulacion con exito!')
+			print('>Se termino la simulacion!')
+			rocket()
 
 		else:
 			print('>Fracaso en la simulacion.')
@@ -408,14 +472,15 @@ def main():
 
 					energiaTotal(condicionesActuales, estaLuna = True)
 
-					print('>Se termino la simulacion con exito!')
+					print('>Se termino la simulacion!')
 
 				else:
 					print('>Fracaso en la simulacion')
 
 				v0 = float(input('>Ingrese una velocidad inicial para el problema, 0 para finalizar.\n>Opcion: '))
 	
-		print('>Programa Finalizado')
+		print('>Se termino la simulacion!')
+		rocket()
 
 	else:
 
