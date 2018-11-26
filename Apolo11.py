@@ -130,11 +130,11 @@ def Vy_n(h, condicionesActuales, counter, M2, w, RK = False, G = 6.674 * (10 ** 
 
 		fuerzaCentripeta = (w ** 2) * dg * math.sin(ac)
 
-	Vy = (condicionesActuales[counter].get('Vyn') + h * (fuerzaTerrea + fuerzaLunar + fuerzaCentripeta))
+	Vy = (fuerzaTerrea + fuerzaLunar + fuerzaCentripeta)
 
 	if RK is False:
 
-		condicionesActuales[counter]['Vyn'] = Vy
+		condicionesActuales[counter]['Vyn'] = condicionesActuales[counter].get('Vyn') + h * Vy
 
 	else:
 
@@ -174,11 +174,11 @@ def Vx_n(h, condicionesActuales, counter, M2, w, RK = False, G = 6.674 * (10 ** 
 
 		fuerzaCentripeta = (w ** 2) * dg * math.cos(ac)
 
-	Vx = (condicionesActuales[counter].get('Vxn') + h * (fuerzaTerrea + fuerzaLunar + fuerzaCentripeta))
+	Vx = (fuerzaTerrea + fuerzaLunar + fuerzaCentripeta)
 
 	if RK is False:	
 
-		condicionesActuales[counter]['Vxn'] = Vx
+		condicionesActuales[counter]['Vxn'] = condicionesActuales[counter].get('Vxn') + h * Vx
 
 	else:
 
@@ -322,7 +322,7 @@ def eulerExplicito(condicionesActuales, v0, M2 = 73.48 * (10 ** 21), w = 4.236 *
 			print('>>>>>>>>La nave se estrello!<<<<<<<<\n')
 			break
 
-		if fullRotationCheck(condicionesActuales[counter]):
+		if fullRotationCheck(condicionesActuales, counter):
 			print('>>>>>>>>Orbita completada!<<<<<<<<\n')
 			rotation = True
 
@@ -421,14 +421,14 @@ def areWeDeadYet(condicion, r1 = 6.731 * (10 ** 6), r2 = 1.738 * (10 ** 6)):
 	else:		
 		return False
 
-def fullRotationCheck(condicion, x1 = -4.670 * (10 ** 6)):
+def fullRotationCheck(condicionesActuales, counter, x1 = -4.670 * (10 ** 6)):
 
 	"""Verifica segun la rotacion de la nave si esta ha completado un ciclo 
 	   (considerando una "orbita" una vuelta completa volviendo al punto de salida"""
 
-	fase = math.atan2(condicion.get('Yn'), condicion.get('Xn') - x1)
+	fase = math.atan2(condicionesActuales[counter].get('Yn'), condicionesActuales[counter].get('Xn') - x1)
 
-	if (fase > -math.pi) & (fase < -3.13):
+	if (fase > -math.pi) & (fase < -3.13) & (condicionesActuales[counter - 1].get('Yn') < 0):
 		return True 
 
 	else:
@@ -437,6 +437,7 @@ def fullRotationCheck(condicion, x1 = -4.670 * (10 ** 6)):
 def rocket():
 
 	print('\n')
+	print('         /\\')
 	print('        /  \\')
 	print('       /    \\')
 	print('      /      \\')
@@ -489,7 +490,7 @@ def rungeKutta2(condicionesActuales, v0, M2 = 73.48 * (10 ** 21), w = 4.236 * (1
 			print('>>>>>>>>La nave se estrello!<<<<<<<<\n')
 			break
 
-		if fullRotationCheck(condicionesActuales[counter]):
+		if fullRotationCheck(condicionesActuales, counter):
 			print('>>>>>>>>Orbita completada!<<<<<<<<\n')
 			rotation = True
 
@@ -513,30 +514,47 @@ def rungeKutta2(condicionesActuales, v0, M2 = 73.48 * (10 ** 21), w = 4.236 * (1
 
 def iterarRK2(condicionesActuales, counter, h, M2, w):
 
-	q1 = h * Vx_n(h, condicionesActuales, counter, M2, w, RK = True)
-	p1 = h * Vy_n(h, condicionesActuales, counter, M2, w, RK = True)
-	r1 = h * X_n(h, condicionesActuales, counter, RK = True)
-	s1 = h * Y_n(h, condicionesActuales, counter, RK = True)
+	r1 = h * condicionesActuales[counter].get('Vxn') #m
+	s1 = h * condicionesActuales[counter].get('Vyn') #m
+	q1 = h * Vx_n(h, condicionesActuales, counter, M2, w, RK = True) #m/S
+	p1 = h * Vy_n(h, condicionesActuales, counter, M2, w, RK = True) #m/s
 
+	condicionesActuales[counter]['Xn'] = condicionesActuales[counter].get('Xn') + r1
+	condicionesActuales[counter]['Yn'] = condicionesActuales[counter].get('Yn') + s1
 	condicionesActuales[counter]['Vxn'] = condicionesActuales[counter].get('Vxn') + q1
 	condicionesActuales[counter]['Vyn'] = condicionesActuales[counter].get('Vyn') + p1
+
+	r2 = h * condicionesActuales[counter].get('Vxn')
+	s2 = h * condicionesActuales[counter].get('Vyn')
+	q2 = h * Vx_n(h, condicionesActuales, counter, M2, w, RK = True)
+	p2 = h * Vy_n(h, condicionesActuales, counter, M2, w, RK = True)
+
+	condicionesActuales[counter]['Xn'] = condicionesActuales[counter].get('Xn') - r1
+	condicionesActuales[counter]['Yn'] = condicionesActuales[counter].get('Yn') - s1
+	condicionesActuales[counter]['Vxn'] = condicionesActuales[counter].get('Vxn') - q1
+	condicionesActuales[counter]['Vyn'] = condicionesActuales[counter].get('Vyn') - p1
+
+	condicionesActuales[counter]['Xn'] = condicionesActuales[counter].get('Xn') + 0.5 * (r1 + r2)
+	condicionesActuales[counter]['Yn'] = condicionesActuales[counter].get('Yn') + 0.5 * (s1 + s2)
+	condicionesActuales[counter]['Vxn'] = condicionesActuales[counter].get('Vxn') + 0.5 * (q1 + q2)
+	condicionesActuales[counter]['Vyn'] = condicionesActuales[counter].get('Vyn') + 0.5 * (p1 + p2)
+
+
+
+	"""r1 = h * X_n(h, condicionesActuales, counter, RK = True)
+	s1 = h * Y_n(h, condicionesActuales, counter, RK = True)
+
 	condicionesActuales[counter]['Xn'] = condicionesActuales[counter].get('Xn') + r1
 	condicionesActuales[counter]['Yn'] = condicionesActuales[counter].get('Yn') + s1
 
-	q2 = h * Vx_n(h, condicionesActuales, counter, M2, w, RK = True)
-	p2 = h * Vy_n(h, condicionesActuales, counter, M2, w, RK = True)
 	r2 = h * X_n(h, condicionesActuales, counter, RK = True)
 	s2 = h * Y_n(h, condicionesActuales, counter, RK = True)
 
-	condicionesActuales[counter]['Vxn'] = condicionesActuales[counter].get('Vxn') - q1
-	condicionesActuales[counter]['Vyn'] = condicionesActuales[counter].get('Vyn') - p1
 	condicionesActuales[counter]['Xn'] = condicionesActuales[counter].get('Xn') - r1
 	condicionesActuales[counter]['Yn'] = condicionesActuales[counter].get('Yn') - s1
 
-	condicionesActuales[counter]['Vxn'] = condicionesActuales[counter].get('Vxn') + 0.5 * (q1 + q2)
-	condicionesActuales[counter]['Vyn'] = condicionesActuales[counter].get('Vyn') + 0.5 * (p1 + p2)
 	condicionesActuales[counter]['Xn'] = condicionesActuales[counter].get('Xn') + 0.5 * (r1 + r2)
-	condicionesActuales[counter]['Yn'] = condicionesActuales[counter].get('Yn') + 0.5 * (s1 + s2)
+	condicionesActuales[counter]['Yn'] = condicionesActuales[counter].get('Yn') + 0.5 * (s1 + s2)"""
 
 def opcionEuler():
 
@@ -655,20 +673,3 @@ def main():
 		print('Opcion incorrecta')
 
 main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
