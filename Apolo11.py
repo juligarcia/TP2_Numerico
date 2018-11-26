@@ -257,13 +257,6 @@ def iterarEuler(h, condicionesActuales, counter, M2, w):
 	X_n(h, condicionesActuales, counter)
 	Y_n(h, condicionesActuales, counter)
 
-def iterarRK(h, condicionesActuales, counter, M2, w):
-
-	"""Funcion para iterar con RK"""
-
-	RK2_velocidad(condicionesActuales, counter, h, M2, w)
-	RK2_posicion(condicionesActuales, counter, h)
-
 def plotTrayectoria(trayectoria, estaLuna = False):
 
 	"""Funcion para plotear todos los datos"""
@@ -316,9 +309,6 @@ def eulerExplicito(condicionesActuales, v0, M2 = 73.48 * (10 ** 21), w = 4.236 *
 	iterarEuler(h, condicionesActuales, counter, M2, w)
 
 	while rotation != True & isOnReach :
-
-		#Se toma una 'vuelta' de referencia para frenar las iteraciones o el tiempo en que tarda en dar 
-		#600 vueltas a la tierra (Es un timepo limite por si se dispara el satelite)
 
 		aux = condicionesActuales[counter].copy()
 
@@ -478,8 +468,6 @@ def rungeKutta2(condicionesActuales, v0, M2 = 73.48 * (10 ** 21), w = 4.236 * (1
 	isOnReach = True
 	R = calcularR()
 
-	#Se chequea si la luna esta presente mediante el valor de su masa M2
-
 	h = float(input('>>Ingrese un valor de paso: '))
 	print('\n')
 
@@ -489,16 +477,13 @@ def rungeKutta2(condicionesActuales, v0, M2 = 73.48 * (10 ** 21), w = 4.236 * (1
 
 	while rotation != True & isOnReach :
 
-		#Se toma una 'vuelta' de referencia para frenar las iteraciones o el tiempo en que tarda en dar 
-		#600 vueltas a la tierra (Es un timepo limite por si se dispara el satelite)
-
 		aux = condicionesActuales[counter].copy()
 
 		condicionesActuales.append(aux)
 
 		counter += 1
 		
-		iterarRK(h, condicionesActuales, counter, M2, w)
+		iterarRK2(condicionesActuales, counter, h, M2, w)
 
 		if areWeDeadYet(condicionesActuales[counter]):
 			print('>>>>>>>>La nave se estrello!<<<<<<<<\n')
@@ -526,45 +511,32 @@ def rungeKutta2(condicionesActuales, v0, M2 = 73.48 * (10 ** 21), w = 4.236 * (1
 
 	return True
 
-
-
-def RK2_velocidad(condicionesActuales, counter, h, M2, w):
+def iterarRK2(condicionesActuales, counter, h, M2, w):
 
 	q1 = h * Vx_n(h, condicionesActuales, counter, M2, w, RK = True)
+	p1 = h * Vy_n(h, condicionesActuales, counter, M2, w, RK = True)
+	r1 = h * X_n(h, condicionesActuales, counter, RK = True)
+	s1 = h * Y_n(h, condicionesActuales, counter, RK = True)
 
 	condicionesActuales[counter]['Vxn'] = condicionesActuales[counter].get('Vxn') + q1
-
-	p1 = h * Vy_n(h, condicionesActuales, counter, M2, w, RK = True)
-
 	condicionesActuales[counter]['Vyn'] = condicionesActuales[counter].get('Vyn') + p1
+	condicionesActuales[counter]['Xn'] = condicionesActuales[counter].get('Xn') + r1
+	condicionesActuales[counter]['Yn'] = condicionesActuales[counter].get('Yn') + s1
 
 	q2 = h * Vx_n(h, condicionesActuales, counter, M2, w, RK = True)
 	p2 = h * Vy_n(h, condicionesActuales, counter, M2, w, RK = True)
+	r2 = h * X_n(h, condicionesActuales, counter, RK = True)
+	s2 = h * Y_n(h, condicionesActuales, counter, RK = True)
 
 	condicionesActuales[counter]['Vxn'] = condicionesActuales[counter].get('Vxn') - q1
 	condicionesActuales[counter]['Vyn'] = condicionesActuales[counter].get('Vyn') - p1
+	condicionesActuales[counter]['Xn'] = condicionesActuales[counter].get('Xn') - r1
+	condicionesActuales[counter]['Yn'] = condicionesActuales[counter].get('Yn') - s1
 
 	condicionesActuales[counter]['Vxn'] = condicionesActuales[counter].get('Vxn') + 0.5 * (q1 + q2)
 	condicionesActuales[counter]['Vyn'] = condicionesActuales[counter].get('Vyn') + 0.5 * (p1 + p2)
-
-def RK2_posicion(condicionesActuales, counter, h):
-
-	q1 = h * X_n(h, condicionesActuales, counter, RK = True)
-
-	condicionesActuales[counter]['Xn'] = condicionesActuales[counter].get('Xn') + q1
-
-	p1 = h * X_n(h, condicionesActuales, counter, RK = True)
-
-	condicionesActuales[counter]['Yn'] += condicionesActuales[counter].get('Yn') + p1
-
-	q2 = h * X_n(h, condicionesActuales, counter, RK = True)
-	p2 = h * Y_n(h, condicionesActuales, counter, RK = True)
-
-	condicionesActuales[counter]['Xn'] = condicionesActuales[counter].get('Xn') - q1
-	condicionesActuales[counter]['Yn'] = condicionesActuales[counter].get('Yn') - p1
-
-	condicionesActuales[counter]['Xn'] = condicionesActuales[counter].get('Xn') + 0.5 * (q1 + q2)
-	condicionesActuales[counter]['Yn'] = condicionesActuales[counter].get('Yn') + 0.5 * (p1 + p2)
+	condicionesActuales[counter]['Xn'] = condicionesActuales[counter].get('Xn') + 0.5 * (r1 + r2)
+	condicionesActuales[counter]['Yn'] = condicionesActuales[counter].get('Yn') + 0.5 * (s1 + s2)
 
 def opcionEuler():
 
@@ -585,7 +557,6 @@ def opcionEuler():
 			energiaTotal(condicionesActuales)
 
 			print('>Se termino la simulacion!')
-			rocket()
 
 		else:
 			print('>Fracaso en la simulacion.')
@@ -634,7 +605,6 @@ def opcionRK():
 			energiaTotal(condicionesActuales)
 
 			print('>Se termino la simulacion!')
-			rocket()
 
 		else:
 			print('>Fracaso en la simulacion.')
