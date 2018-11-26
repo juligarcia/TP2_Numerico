@@ -539,23 +539,6 @@ def iterarRK2(condicionesActuales, counter, h, M2, w):
 	condicionesActuales[counter]['Vxn'] = condicionesActuales[counter].get('Vxn') + 0.5 * (q1 + q2)
 	condicionesActuales[counter]['Vyn'] = condicionesActuales[counter].get('Vyn') + 0.5 * (p1 + p2)
 
-
-
-	"""r1 = h * X_n(h, condicionesActuales, counter, RK = True)
-	s1 = h * Y_n(h, condicionesActuales, counter, RK = True)
-
-	condicionesActuales[counter]['Xn'] = condicionesActuales[counter].get('Xn') + r1
-	condicionesActuales[counter]['Yn'] = condicionesActuales[counter].get('Yn') + s1
-
-	r2 = h * X_n(h, condicionesActuales, counter, RK = True)
-	s2 = h * Y_n(h, condicionesActuales, counter, RK = True)
-
-	condicionesActuales[counter]['Xn'] = condicionesActuales[counter].get('Xn') - r1
-	condicionesActuales[counter]['Yn'] = condicionesActuales[counter].get('Yn') - s1
-
-	condicionesActuales[counter]['Xn'] = condicionesActuales[counter].get('Xn') + 0.5 * (r1 + r2)
-	condicionesActuales[counter]['Yn'] = condicionesActuales[counter].get('Yn') + 0.5 * (s1 + s2)"""
-
 def opcionEuler():
 
 	opcion = int(input('>Ingrese 1 para probar la orbita terrestre \n>Ingrese 2 para probar la orbita terrestre - lunar\n\n>Opcion: '))
