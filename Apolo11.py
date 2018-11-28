@@ -1,6 +1,6 @@
-"""Trabajo Practico N° 1 - Analisis Numerico - Curso Tarela - Grupo 6"""
+"""Trabajo Practico N° 2 - Analisis Numerico - Curso Tarela - Grupo 6"""
 
-#Martes 09 de Octubre
+#Miercoles 18 de Noviembre
 
 #Integrantes:
 #Julian Garcia Delfino - 100784
@@ -412,14 +412,17 @@ def fullRotationCheck(condicionesActuales, counter, x1 = -4.670 * (10 ** 6)):
 	"""Verifica segun la rotacion de la nave si esta ha completado un ciclo 
 	   (considerando una "orbita" una vuelta completa volviendo al punto de salida"""
 
-	for division in range(2, 5):
+	for division in range(1, 5):
 
 		y = (condicionesActuales[counter].get('Yn') + condicionesActuales[counter - 1].get('Yn')) / division
 		x = (condicionesActuales[counter].get('Xn') + condicionesActuales[counter - 1].get('Xn')) / division
 
 		fase = math.atan2(y, x - x1)
 
-		if (fase > -math.pi) & (fase < -3.13) & (condicionesActuales[counter - 1].get('Yn') < 0):
+		anterior = condicionesActuales[counter - 1].get('Yn')
+		actual = condicionesActuales[counter].get('Yn')
+
+		if (fase > -math.pi) & (fase < -3.13) & (anterior < 0) & (actual > anterior):
 			return True 
 
 	return False
