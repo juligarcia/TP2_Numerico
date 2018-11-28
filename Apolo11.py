@@ -68,33 +68,17 @@ def condicionesIniciales(V_dada):
 
 	return condiciones_0
 
-def X_n(h, condicionesActuales, counter, RK = False):
+def X_n(h, condicionesActuales, counter):
 
 	"""Calcula una iteracion de la ecuacion Xn+1"""
 
-	X = (condicionesActuales[counter].get('Xn') + h * condicionesActuales[counter].get('Vxn'))
+	condicionesActuales[counter]['Xn'] = (condicionesActuales[counter].get('Xn') + h * condicionesActuales[counter].get('Vxn'))
 
-	if RK is False:
-
-		condicionesActuales[counter]['Xn'] = X
-
-	else:
-
-		return X
-
-def  Y_n(h, condicionesActuales, counter, RK = False):
+def  Y_n(h, condicionesActuales, counter):
 
 	"""Calcula una iteracion de la ecuacion Yn+1"""
 
-	Y = (condicionesActuales[counter].get('Yn') + h * condicionesActuales[counter].get('Vyn'))
-
-	if RK is False:
-
-		condicionesActuales[counter]['Yn'] = Y
-
-	else:
-		
-		return Y
+	condicionesActuales[counter]['Yn'] = (condicionesActuales[counter].get('Yn') + h * condicionesActuales[counter].get('Vyn'))
 
 def Vy_n(h, condicionesActuales, counter, M2, w, RK = False, G = 6.674 * (10 ** -11), M1 = 5972 * (10 ** 21), y1 = 0, x1 = -4.670 * (10 ** 6), y2 = 0, x2 = 379.7 * (10 ** 6)):
 
@@ -353,6 +337,8 @@ def printBitacora(condiciones_0, h, counter):
 
 def onReach(condicion, x1 = -4.670 * (10 ** 6), x2 = 379.7 * (10 ** 6)):
 
+	"""Se encarga de verificar que la nave siga dentro de un rango aceptable"""
+
 	distanciaEntreLunaYTierra = x2 - x1
 
 	if dSquared(condicion, estaTierra = True) ** 0.5 >= 1.5 * distanciaEntreLunaYTierra:
@@ -426,13 +412,17 @@ def fullRotationCheck(condicionesActuales, counter, x1 = -4.670 * (10 ** 6)):
 	"""Verifica segun la rotacion de la nave si esta ha completado un ciclo 
 	   (considerando una "orbita" una vuelta completa volviendo al punto de salida"""
 
-	fase = math.atan2(condicionesActuales[counter].get('Yn'), condicionesActuales[counter].get('Xn') - x1)
+	for division in range(2, 5):
 
-	if (fase > -math.pi) & (fase < -3.13) & (condicionesActuales[counter - 1].get('Yn') < 0):
-		return True 
+		y = (condicionesActuales[counter].get('Yn') + condicionesActuales[counter - 1].get('Yn')) / division
+		x = (condicionesActuales[counter].get('Xn') + condicionesActuales[counter - 1].get('Xn')) / division
 
-	else:
-		return False
+		fase = math.atan2(y, x - x1)
+
+		if (fase > -math.pi) & (fase < -3.13) & (condicionesActuales[counter - 1].get('Yn') < 0):
+			return True 
+
+	return False
 
 def rocket():
 
